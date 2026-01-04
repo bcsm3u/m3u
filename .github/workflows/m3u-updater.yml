@@ -38,7 +38,7 @@ jobs:
           git config user.name "Shivam Raj"
           git config user.email "bettercallshiv@gmail.com"
           git add *.m3u
-          git commit -m "Updated Playlist" || exit 0
+          git commit -m "Updated m3u Playlist" || exit 0
           git pull --rebase origin main
           git push origin main
           

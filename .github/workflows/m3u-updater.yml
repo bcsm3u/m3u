@@ -5,7 +5,12 @@ permissions:
 
 on:
   schedule:
-    - cron:   "*/5 * * * *"  # every 5 minutes
+    - cron: "30-59/5 0 * * *"
+    - cron: "*/5 1-17 * * *"
+    - cron: "0-25/5 18 * * *"
+    - cron: "30-59/5 18 * * *"
+    - cron: "0-25/5 19 * * *"
+
   workflow_dispatch:
 
 concurrency:
@@ -35,10 +40,9 @@ jobs:
 
       - name: Commit playlist if changed
         run: |
-          git config user.name "BetterCallShiv"
-          git config user.email "bettercallshiv@gmail.com"
+          git config user.name "m3u-updater-bot"
+          git config user.email "m3u-updater-bot@users.noreply.github.com"
           git add *.m3u
-          git commit -m "Updated m3u Playlist" || exit 0
+          git commit -m "chore: update m3u playlist" || exit 0
           git pull --rebase origin main
           git push origin main
-          

@@ -2,6 +2,7 @@ import requests
 import time
 import re
 import json
+from urllib.parse import quote
 
 BASE_INDEX = "https://index.bettercallshiv.workers.dev"
 ROOT_PATH = "/"
@@ -57,9 +58,10 @@ def crawl(drive, path, depth=0, max_depth=20):
                 time.sleep(0.2)
                 videos.extend(crawl(drive, sub, depth + 1))
             elif name.lower().endswith(VIDEO_EXT):
+                safe_path = quote(f"{path.rstrip('/')}/{name}")
                 videos.append({
                     "name": name,
-                    "url": f"{BASE_INDEX}/{drive}:{path.rstrip('/')}/{name}"
+                    "url": f"{BASE_INDEX}/{drive}:{safe_path}"
                 })
         page_token = data.get("data", {}).get("nextPageToken")
         if not page_token:

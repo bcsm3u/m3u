@@ -1,5 +1,7 @@
 import requests
 import time
+import re
+import json
 
 BASE_INDEX = "https://index.bettercallshiv.workers.dev"
 ROOT_PATH = "/"
@@ -8,19 +10,19 @@ VIDEO_EXT = (".mp4", ".mkv", ".avi", ".mov", ".webm")
 session = requests.Session()
 session.headers.update({
     "User-Agent": "Mozilla/5.0",
-    "Accept": "application/json",
+    "Accept": "*/*",
 })
 
 
-def list_folder_raw(path, page_token=None, page_index=0):
-    url = f"{BASE_INDEX}{path}"
-    payload = {
-        "page_token": page_token,
-        "page_index": page_index
-    }
-    r = session.post(url, json=payload, timeout=20)
+def get_drives():
+    r = session.get(BASE_INDEX, timeout=20, allow_redirects=True)
     r.raise_for_status()
-    return r.json()
+    match = re.search(r'window\.drive_names\s*=\s*JSON\.parse\(\'(.+?)\'\)', r.text)
+    if match:
+        json_str = match.group(1)
+        drives = json.loads(json_str)
+        return drives
+    return []
 
 
 def list_folder(drive, path, page_token=None, page_index=0):
@@ -67,7 +69,7 @@ def crawl(drive, path, depth=0, max_depth=20):
 
 
 def write_m3u(folder_name, videos):
-    filename = f"{folder_name}.m3u"  # 🔒 untouched
+    filename = f"{folder_name}.m3u"
     with open(filename, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for v in videos:
@@ -76,15 +78,12 @@ def write_m3u(folder_name, videos):
 
 
 def main():
-    root = list_folder_raw("/")
-    drives = [
-        f["name"] for f in root.get("data", {}).get("files", [])
-        if f.get("mimeType") == "application/vnd.google-apps.folder"
-    ]
+    drives = get_drives()
     print(f"Detected drives: {drives}")
     for drive in drives:
         data = list_folder(drive, ROOT_PATH)
-        for f in data.get("data", {}).get("files", []):
+        files = data.get("data", {}).get("files", [])
+        for f in files:
             if f.get("mimeType") != "application/vnd.google-apps.folder":
                 continue
             folder = f.get("name")

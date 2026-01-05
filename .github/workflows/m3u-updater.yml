@@ -1,0 +1,44 @@
+name: Build m3u
+
+permissions:
+  contents: write
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 minutes
+  workflow_dispatch:
+
+concurrency:
+  group: m3u-updater
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run crawler
+        run: python crawler.py
+
+      - name: Commit playlist if changed
+        run: |
+          git config user.name "BetterCallShiv"
+          git config user.email "bettercallshiv@gmail.com"
+          git add *.m3u
+          git commit -m "Updated m3u Playlist" || exit 0
+          git pull --rebase origin main
+          git push origin main
+          

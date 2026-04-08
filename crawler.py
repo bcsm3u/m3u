@@ -71,7 +71,8 @@ def crawl(drive, path, depth=0, max_depth=20):
 
 
 def write_m3u(folder_name, videos):
-    filename = f"{folder_name}.m3u"
+    sanitized_name = folder_name.replace(" ", "_")
+    filename = f"{sanitized_name}.m3u"
     with open(filename, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         for v in videos:
